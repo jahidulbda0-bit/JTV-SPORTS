@@ -1,3 +1,4 @@
+
 name: Build JTV SPORTS APK
 
 on:
@@ -25,13 +26,9 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
-        with:
-          accept-android-sdk-licenses: true
 
       - name: Install SDK
         run: |
@@ -41,15 +38,25 @@ jobs:
       - name: Extract Android Project
         run: |
           unzip -q JTV_SPORTS_Adsterra_BuildReady.zip -d project
-          ls -la project
-          test -d project/app
+
+          PROJECT_DIR=$(find project -type f \
+            \( -name settings.gradle -o -name settings.gradle.kts \) \
+            -printf '%h\n' | head -n 1)
+
+          if [ -z "$PROJECT_DIR" ] || [ ! -d "$PROJECT_DIR/app" ]; then
+            echo "Android project not found!"
+            find project -maxdepth 5 -type f
+            exit 1
+          fi
+
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Build APK
-        run: gradle -p project assembleDebug
+        run: gradle -p "$PROJECT_DIR" --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: JTV-SPORTS-APK
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
