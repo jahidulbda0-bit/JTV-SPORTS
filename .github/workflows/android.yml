@@ -31,26 +31,22 @@ jobs:
           gradle-version: '8.9'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
+          packages: platform-tools
           accept-android-sdk-licenses: true
-
-      - name: Accept Android SDK Licenses
-        run: yes | sdkmanager --licenses
 
       - name: Install Android SDK packages
         run: |
           sdkmanager "platforms;android-35"
           sdkmanager "build-tools;35.0.0"
 
-      - name: Check project files
+      - name: Check project
         run: |
           ls -la
           test -d app
-          test -f settings.gradle
-          test -f build.gradle
 
-      - name: Build Debug APK
+      - name: Build APK
         run: gradle assembleDebug
 
       - name: Upload APK
