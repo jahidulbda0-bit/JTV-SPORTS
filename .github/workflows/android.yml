@@ -3,23 +3,21 @@ name: Build JTV SPORTS APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
 
 permissions:
   contents: read
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build JTV SPORTS APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -33,25 +31,25 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: platform-tools
           accept-android-sdk-licenses: true
 
-      - name: Install Android SDK packages
+      - name: Install SDK
         run: |
           sdkmanager "platforms;android-35"
           sdkmanager "build-tools;35.0.0"
 
-      - name: Check project
+      - name: Extract Android Project
         run: |
-          ls -la
-          test -d app
+          unzip -q JTV_SPORTS_Adsterra_BuildReady.zip -d project
+          ls -la project
+          test -d project/app
 
       - name: Build APK
-        run: gradle assembleDebug
+        run: gradle -p project assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: JTV-SPORTS-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
